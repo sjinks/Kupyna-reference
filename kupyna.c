@@ -12,6 +12,10 @@ Authors: Ruslan Kiianchuk, Ruslan Mordvinov, Roman Oliynykov
 #include "kupyna.h"
 #include "tables.h"
 
+union array2d {
+	uint8_t s[NB_1024][ROWS];
+	uint64_t s64[NB_1024*ROWS/8];
+};
 
 int KupynaInit(size_t hash_nbits, kupyna_t* ctx) {
     if ((hash_nbits % 8 != 0) || (hash_nbits > 512)) {
@@ -106,9 +110,8 @@ static void AddRoundConstantP(uint8_t state[NB_1024][ROWS], int columns, int rou
     }
 }
 
-static void AddRoundConstantQ(uint8_t state[NB_1024][ROWS], int columns, int round) {
+static void AddRoundConstantQ(uint64_t* s, int columns, int round) {
     int j;
-    uint64_t* s = (uint64_t*)state;
     for (j = 0; j < columns; ++j) {
         s[j] = s[j] + (0x00F0F0F0F0F0F0F3ULL ^ 
                 ((((columns - j - 1) * 0x10ULL) ^ round) << (7 * 8)));
@@ -126,13 +129,13 @@ static void P(kupyna_t* ctx, uint8_t state[NB_1024][ROWS]) {
     }
 }
 
-static void Q(kupyna_t* ctx, uint8_t state[NB_1024][ROWS]) {
+static void Q(kupyna_t* ctx, union array2d* state) {
     int i;
     for (i = 0; i < ctx->rounds; ++i) {
-        AddRoundConstantQ(state, ctx->columns, i);
-        SubBytes(state, ctx->columns);
-        ShiftBytes(state, ctx->columns);
-        MixColumns(state, ctx->columns);
+        AddRoundConstantQ(state->s64, ctx->columns, i);
+        SubBytes(state->s, ctx->columns);
+        ShiftBytes(state->s, ctx->columns);
+        MixColumns(state->s, ctx->columns);
     }
 }
 
@@ -179,19 +182,19 @@ static int Pad(kupyna_t* ctx, uint8_t* data, size_t msg_nbits) {
 static void Digest(kupyna_t* ctx, uint8_t* data) {
     int b, i, j;
     uint8_t temp1[NB_1024][ROWS];
-    uint8_t temp2[NB_1024][ROWS];
+    union array2d temp2;
     for (b = 0; b < ctx->data_nbytes; b += ctx->nbytes) {
         for (i = 0; i < ROWS; ++i) {
             for (j = 0; j < ctx->columns; ++j) {
                 temp1[j][i] = ctx->state[j][i] ^ data[b + j * ROWS + i];
-                temp2[j][i] = data[b + j * ROWS + i];
+                temp2.s[j][i] = data[b + j * ROWS + i];
             }
         }
         P(ctx, temp1);
-        Q(ctx, temp2);
+        Q(ctx, &temp2);
         for (i = 0; i < ROWS; ++i) {
             for (j = 0; j < ctx->columns; ++j) {
-                ctx->state[j][i] ^= temp1[j][i] ^ temp2[j][i];
+                ctx->state[j][i] ^= temp1[j][i] ^ temp2.s[j][i];
             }
         }
     }
@@ -200,14 +203,14 @@ static void Digest(kupyna_t* ctx, uint8_t* data) {
         for (i = 0; i < ROWS; ++i) {
             for (j = 0; j < ctx->columns; ++j) {
                 temp1[j][i] = ctx->state[j][i] ^ ctx->padding[b + j * ROWS + i];
-                temp2[j][i] = ctx->padding[b + j * ROWS + i];
+                temp2.s[j][i] = ctx->padding[b + j * ROWS + i];
             }
         }
         P(ctx, temp1);
-        Q(ctx, temp2);
+        Q(ctx, &temp2);
         for (i = 0; i < ROWS; ++i) {
             for (j = 0; j < ctx->columns; ++j) {
-                ctx->state[j][i] ^= temp1[j][i] ^ temp2[j][i];
+                ctx->state[j][i] ^= temp1[j][i] ^ temp2.s[j][i];
             }
         }
     }
