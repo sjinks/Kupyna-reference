@@ -34,7 +34,7 @@ int KupynaInit(size_t hash_nbits, kupyna_t* ctx) {
 }
 
 
-void SubBytes(uint8_t state[NB_1024][ROWS], int columns) {
+static void SubBytes(uint8_t state[NB_1024][ROWS], int columns) {
     int i, j;
     for (i = 0; i < ROWS; ++i) {
         for (j = 0; j < columns; ++j) {
@@ -43,7 +43,7 @@ void SubBytes(uint8_t state[NB_1024][ROWS], int columns) {
     }
 }
 
-void ShiftBytes(uint8_t state[NB_1024][ROWS], int columns) {
+static void ShiftBytes(uint8_t state[NB_1024][ROWS], int columns) {
     int i, j;
     uint8_t temp[NB_1024];
     int shift = -1;
@@ -63,7 +63,7 @@ void ShiftBytes(uint8_t state[NB_1024][ROWS], int columns) {
 }
 
 
-uint8_t MultiplyGF(uint8_t x, uint8_t y) {
+static uint8_t MultiplyGF(uint8_t x, uint8_t y) {
     int i;
     uint8_t r = 0;
     uint8_t hbit = 0;
@@ -79,7 +79,7 @@ uint8_t MultiplyGF(uint8_t x, uint8_t y) {
     return r;
 }
 
-void MixColumns(uint8_t state[NB_1024][ROWS], int columns) {
+static void MixColumns(uint8_t state[NB_1024][ROWS], int columns) {
     int i, row, col, b;
     uint8_t product;
     uint8_t result[ROWS];
@@ -99,14 +99,14 @@ void MixColumns(uint8_t state[NB_1024][ROWS], int columns) {
 }
 
 
-void AddRoundConstantP(uint8_t state[NB_1024][ROWS], int columns, int round) {
+static void AddRoundConstantP(uint8_t state[NB_1024][ROWS], int columns, int round) {
     int i;
     for (i = 0; i < columns; ++i) {
         state[i][0] ^= (i * 0x10) ^ round;
     }
 }
 
-void AddRoundConstantQ(uint8_t state[NB_1024][ROWS], int columns, int round) {
+static void AddRoundConstantQ(uint8_t state[NB_1024][ROWS], int columns, int round) {
     int j;
     uint64_t* s = (uint64_t*)state;
     for (j = 0; j < columns; ++j) {
@@ -116,7 +116,7 @@ void AddRoundConstantQ(uint8_t state[NB_1024][ROWS], int columns, int round) {
 }
 
 
-void P(kupyna_t* ctx, uint8_t state[NB_1024][ROWS]) {
+static void P(kupyna_t* ctx, uint8_t state[NB_1024][ROWS]) {
     int i;
     for (i = 0; i < ctx->rounds; ++i) {
         AddRoundConstantP(state, ctx->columns, i);
@@ -126,7 +126,7 @@ void P(kupyna_t* ctx, uint8_t state[NB_1024][ROWS]) {
     }
 }
 
-void Q(kupyna_t* ctx, uint8_t state[NB_1024][ROWS]) {
+static void Q(kupyna_t* ctx, uint8_t state[NB_1024][ROWS]) {
     int i;
     for (i = 0; i < ctx->rounds; ++i) {
         AddRoundConstantQ(state, ctx->columns, i);
@@ -137,7 +137,7 @@ void Q(kupyna_t* ctx, uint8_t state[NB_1024][ROWS]) {
 }
 
 
-int Pad(kupyna_t* ctx, uint8_t* data, size_t msg_nbits) {
+static int Pad(kupyna_t* ctx, uint8_t* data, size_t msg_nbits) {
     int i;
     int mask;
     int pad_bit;
@@ -176,7 +176,7 @@ int Pad(kupyna_t* ctx, uint8_t* data, size_t msg_nbits) {
 }
 
 
-void Digest(kupyna_t* ctx, uint8_t* data) {
+static void Digest(kupyna_t* ctx, uint8_t* data) {
     int b, i, j;
     uint8_t temp1[NB_1024][ROWS];
     uint8_t temp2[NB_1024][ROWS];
@@ -214,13 +214,13 @@ void Digest(kupyna_t* ctx, uint8_t* data) {
 }
 
 
-void Trunc(kupyna_t* ctx, uint8_t* hash_code) {
+static void Trunc(kupyna_t* ctx, uint8_t* hash_code) {
     size_t hash_nbytes = ctx->hash_nbits / BITS_IN_BYTE;    
     memcpy(hash_code, (uint8_t*)ctx->state + ctx->nbytes - hash_nbytes, hash_nbytes);
 }
 
 
-void OutputTransformation(kupyna_t* ctx, uint8_t* hash_code) {
+static void OutputTransformation(kupyna_t* ctx, uint8_t* hash_code) {
     int i, j;
     uint8_t temp[NB_1024][ROWS];
     memcpy(temp, ctx->state, ROWS * NB_1024);
