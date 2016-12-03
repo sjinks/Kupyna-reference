@@ -371,4 +371,4 @@ void print (int data_len, uint8_t data [])
 		if (!((i + 1) % 16)) printf ("\n");
 	};
 	printf ("\n");
-};
+}
