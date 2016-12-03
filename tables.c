@@ -7,6 +7,7 @@ Authors: Ruslan Kiianchuk, Ruslan Mordvinov, Roman Oliynykov
 */
 
 #include "kupyna.h"
+#include "tables.h"
 
 uint8_t mds_matrix[8][8] = {
 	{0x01, 0x01, 0x05, 0x01, 0x08, 0x06, 0x07, 0x04},
