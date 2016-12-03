@@ -53,7 +53,7 @@ typedef struct {
 /*!
  * Initialize Kupyna hash function context.
  * Choose appropriate state size.
- * @param hash_hbits Bit size of the hash code to generate.
+ * @param hash_nbits Bit size of the hash code to generate.
  * @param ctx Context of the Kupyna hash function.
  * @return Non-zero value in case of error, 0 in case of success.
  */
@@ -68,7 +68,6 @@ int KupynaInit(size_t hash_nbits, kupyna_t* ctx);
  * @param hash_code Pointer to memory, allocated for storing generated hash
  * code.
  * It is user's responsibility to allocate enough memory for the hash code.
- * @return value
  */
 void KupynaHash(kupyna_t* ctx, uint8_t* data, size_t msg_nbits, uint8_t* hash_code);
 
@@ -76,7 +75,7 @@ void KupynaHash(kupyna_t* ctx, uint8_t* data, size_t msg_nbits, uint8_t* hash_co
  * Generate message authentication code with key usage for input message of given bit length.
  * @param ctx Context of the Kupyna hash function.
  * @param key Pointer to input key bytes array.
- * @param digist_nbits Input key bit size.
+ * @param digest_nbits Input key bit size.
  * @param data Pointer to input message bytes array to be digested.
  * @param msg_nbits Input message bit size.
  * @param digest Pointer to memory, allocated for storing generated message authentication code.
