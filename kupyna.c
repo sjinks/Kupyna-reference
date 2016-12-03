@@ -29,7 +29,7 @@ int KupynaInit(size_t hash_nbits, kupyna_t* ctx) {
     ctx->hash_nbits = hash_nbits;
     memset(ctx->state, 0, ctx->nbytes);
     // Set init value according to the specification.
-    ctx->state[0][0] = ctx->nbytes;
+    ctx->state[0][0] = (uint8_t)ctx->nbytes;
     return 0;
 }
 
@@ -140,8 +140,8 @@ static void Q(kupyna_t* ctx, uint8_t state[NB_1024][ROWS]) {
 static int Pad(kupyna_t* ctx, uint8_t* data, size_t msg_nbits) {
     int i;
     int mask;
-    int pad_bit;
-    int extra_bits;
+    uint8_t pad_bit;
+    uint8_t extra_bits;
     int zero_nbytes;
     size_t msg_nbytes = msg_nbits / BITS_IN_BYTE;
     size_t nblocks = msg_nbytes / ctx->nbytes;
@@ -156,7 +156,7 @@ static int Pad(kupyna_t* ctx, uint8_t* data, size_t msg_nbits) {
     extra_bits = msg_nbits % BITS_IN_BYTE;
     if (extra_bits) {
         mask = ~(0xFF >> (extra_bits));
-        pad_bit = 1 << (7 - extra_bits);
+        pad_bit = (uint8_t)(1 << (7 - extra_bits));
         ctx->padding[ctx->pad_nbytes - 1] = (ctx->padding[ctx->pad_nbytes - 1] & mask) | pad_bit;
     } else {
         ctx->padding[ctx->pad_nbytes] = 0x80;
@@ -237,7 +237,7 @@ static void OutputTransformation(kupyna_t* ctx, uint8_t* hash_code) {
 void KupynaHash(kupyna_t* ctx, uint8_t* data, size_t msg_bit_len, uint8_t* hash_code) {
     /* Reinitialize internal state. */
     memset(ctx->state, 0, ctx->nbytes);
-    ctx->state[0][0] = ctx->nbytes;
+    ctx->state[0][0] = (uint8_t)ctx->nbytes;
 
     Pad(ctx, data, msg_bit_len);
     Digest(ctx, data);
@@ -252,7 +252,7 @@ int KupynaKmac(kupyna_t* ctx, uint8_t* key, size_t digest_nbits, uint8_t* data, 
     kupyna_t mpad;
     /* Reinitialize internal state. */
     memset(ctx->state, 0, ctx->nbytes);
-    ctx->state[0][0] = ctx->nbytes;
+    ctx->state[0][0] = (uint8_t)ctx->nbytes;
 
     if (digest_nbits != 256 && digest_nbits != 384 && digest_nbits != 512) {
         /* Invalid key and digest size. */
