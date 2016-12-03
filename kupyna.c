@@ -36,7 +36,6 @@ int KupynaInit(size_t hash_nbits, kupyna_t* ctx) {
 
 void SubBytes(uint8_t state[NB_1024][ROWS], int columns) {
     int i, j;
-    uint8_t temp[NB_1024];
     for (i = 0; i < ROWS; ++i) {
         for (j = 0; j < columns; ++j) {
             state[j][i] = sboxes[i % 4][state[j][i]];
@@ -216,7 +215,6 @@ void Digest(kupyna_t* ctx, uint8_t* data) {
 
 
 void Trunc(kupyna_t* ctx, uint8_t* hash_code) {
-    int i;
     size_t hash_nbytes = ctx->hash_nbits / BITS_IN_BYTE;    
     memcpy(hash_code, (uint8_t*)ctx->state + ctx->nbytes - hash_nbytes, hash_nbytes);
 }
